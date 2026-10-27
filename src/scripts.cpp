@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include "scripts.h"
+#include <Arduino.h>
 #include "hal.h"
 #include "ui.h"
 #include "config.h"

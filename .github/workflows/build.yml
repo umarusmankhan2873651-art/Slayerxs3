@@ -29,24 +29,66 @@ jobs:
       - name: Build
         run: pio run -e esp32s3
 
+      - name: Prepare flash parts
+        run: |
+          mkdir -p flash_parts
+          cp .pio/build/esp32s3/bootloader.bin  flash_parts/
+          cp .pio/build/esp32s3/partitions.bin  flash_parts/
+          cp .pio/build/esp32s3/firmware.bin    flash_parts/
+          # Locate boot_app0.bin from the Arduino-ESP32 framework
+          BOOT_APP0=$(find ~/.platformio/packages -type f -name boot_app0.bin | head -1)
+          if [ -z "$BOOT_APP0" ]; then
+            echo "boot_app0.bin not found — generating blank 8KB"
+            python -c "open('flash_parts/boot_app0.bin','wb').write(bytes(0x2000))"
+          else
+            cp "$BOOT_APP0" flash_parts/
+          fi
+          ls -lh flash_parts/
+
       - name: Merge flashable image
         run: |
           pip install esptool
+          # NOTE: factory partition starts at 0x20000 (see partitions.csv)
           python -m esptool --chip esp32s3 merge_bin \
             -o slayerx-merged.bin \
             --flash_mode dio --flash_size 16MB --flash_freq 80m \
-            0x0     .pio/build/esp32s3/bootloader.bin \
-            0x8000  .pio/build/esp32s3/partitions.bin \
-            0xe000  ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
-            0x10000 .pio/build/esp32s3/firmware.bin
+            0x0      flash_parts/bootloader.bin \
+            0x8000   flash_parts/partitions.bin \
+            0xe000   flash_parts/boot_app0.bin \
+            0x20000  flash_parts/firmware.bin
           ls -lh slayerx-merged.bin
 
+      - name: Show image info
+        run: python -m esptool --chip esp32s3 image_info slayerx-merged.bin || true
+
+      # -------- Artifacts --------
       - uses: actions/upload-artifact@v4
         with:
           name: slayerx-merged
           path: slayerx-merged.bin
+          if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
         with:
-          name: slayerx-app
-          path: .pio/build/esp32s3/firmware.bin
+          name: slayerx-firmware
+          path: flash_parts/firmware.bin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slayerx-bootloader
+          path: flash_parts/bootloader.bin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slayerx-partitions
+          path: flash_parts/partitions.bin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slayerx-otadata
+          path: flash_parts/boot_app0.bin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slayerx-all-parts
+          path: flash_parts/

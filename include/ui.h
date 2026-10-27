@@ -1,5 +1,12 @@
 #pragma once
 #include <Arduino.h>
+
+struct UiItem {
+  const char* label;
+  void (*action)();
+  void* data;      // third field used as `nullptr` in main.cpp
+};
+
 void ui_splash();
 void ui_message(const char* l1, const char* l2 = nullptr, uint16_t ms = 1200);
 void ui_toast(const char* m, uint16_t ms = 800);

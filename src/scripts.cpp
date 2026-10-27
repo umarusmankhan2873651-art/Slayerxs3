@@ -1,11 +1,12 @@
 #include "scripts.h"
+#include <Arduino.h>
 #include "hal.h"
 #include "ui.h"
 #include "config.h"
-#include "attack.h"        // <-- ADD THIS LINE
+#include "attack.h"        // <-- ADD THIS LINE (declares log_line)
 #include <SD.h>
-#include <USB.h>
-#include <USBHIDKeyboard.h>
+#include <BleKeyboard.h>
+#include <BLEDevice.h>
 
 static BleKeyboard kb("SlayerX", "SlayerX", 100);
 static bool kbUp = false;

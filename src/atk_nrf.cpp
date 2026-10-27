@@ -17,7 +17,7 @@ static bool begin() {
   if (ok) return true;
   SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
   if (!radio.begin(PIN_NRF_CE, PIN_NRF_CSN)) return false;
-  SPI.begin(PIN_SPI_SCK, PIN_NRF_MISO, PIN_SPI_MOSI);
+  SPI.begin(PIN_SPI_SCK, PIN_SPI_MISO, PIN_SPI_MOSI);
   if (!radio.isChipConnected()) return false;
   radio.setAutoAck(false);
   radio.setPALevel(RF24_PA_MAX);

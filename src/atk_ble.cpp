@@ -9,6 +9,9 @@
 #include <BLEAdvertisedDevice.h>
 #include <BLEDevice.h>
 #include <BLEScan.h>
+#include "esp_gap_ble_api.h"
+#include "esp_bt_defs.h"
+#include "esp_bt_main.h"
 
 static int bMode = 0;
 static uint32_t bpkts = 0;

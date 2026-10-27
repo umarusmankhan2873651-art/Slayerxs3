@@ -7,7 +7,8 @@
 #include <BLEDevice.h>
 #include <BLEScan.h>
 #include <BLEAdvertisedDevice.h>
-#include <esp_gap_ble_api.h>
+#include <BLEDevice.h>
+#include <BLEScan.h>
 
 static int bMode = 0;
 static uint32_t bpkts = 0;

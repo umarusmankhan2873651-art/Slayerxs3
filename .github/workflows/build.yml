@@ -1,0 +1,52 @@
+name: Build SlayerX
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ runner.os }}-${{ hashFiles('platformio.ini') }}
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: List environments
+        run: grep -E '^\[env:' platformio.ini || true
+
+      - name: Build
+        run: pio run -e esp32s3
+
+      - name: Merge flashable image
+        run: |
+          pip install esptool
+          python -m esptool --chip esp32s3 merge_bin \
+            -o slayerx-merged.bin \
+            --flash_mode dio --flash_size 16MB --flash_freq 80m \
+            0x0     .pio/build/esp32s3/bootloader.bin \
+            0x8000  .pio/build/esp32s3/partitions.bin \
+            0xe000  ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
+            0x10000 .pio/build/esp32s3/firmware.bin
+          ls -lh slayerx-merged.bin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slayerx-merged
+          path: slayerx-merged.bin
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: slayerx-app
+          path: .pio/build/esp32s3/firmware.bin
